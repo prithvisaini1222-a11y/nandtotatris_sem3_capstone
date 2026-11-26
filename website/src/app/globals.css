@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-olive-dark: #3F4B25;
+  --color-olive: #596B35;
+  --color-olive-light: #78894F;
+  --color-cream: #F3EED8;
+  --color-ivory: #FFFDF4;
+  --color-gold: #C6AD68;
+  --color-sage: #A7B28A;
+  --color-forest-text: #29321F;
+  --color-border: #D9D1B7;
+
+  --background: var(--color-olive-dark);
+  --foreground: var(--color-forest-text);
+}
+
+html {
+  background-color: var(--color-olive-dark);
+  color: var(--color-forest-text);
+  scroll-behavior: smooth;
+}
+
+/* Pre-hydration guard on fresh homepage load to prevent homepage flicker before intro mounts */
+html[data-intro-pending="1"] {
+  overflow: hidden;
+}
+
+html[data-intro-pending="1"] #site-shell {
+  opacity: 0;
+}
+
+body {
+  background-color: var(--color-olive-dark);
+  color: var(--color-forest-text);
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* Subtle Geometric Circuit / PCB Pattern for Deep Olive Backgrounds */
+.pcb-pattern {
+  background-image: radial-gradient(rgba(198, 173, 104, 0.12) 1px, transparent 1px),
+                    linear-gradient(to right, rgba(120, 137, 79, 0.08) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(120, 137, 79, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px, 48px 48px, 48px 48px;
+}
+
+.pcb-lines {
+  background-image: linear-gradient(135deg, rgba(198, 173, 104, 0.08) 25%, transparent 25%),
+                    linear-gradient(225deg, rgba(198, 173, 104, 0.08) 25%, transparent 25%),
+                    linear-gradient(45deg, rgba(198, 173, 104, 0.08) 25%, transparent 25%),
+                    linear-gradient(315deg, rgba(198, 173, 104, 0.08) 25%, transparent 25%);
+  background-position: 10px 0, 10px 0, 0 0, 0 0;
+  background-size: 20px 20px;
+}
+
+.pixelated {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+/* Elegant Scrollbars */
+pre::-webkit-scrollbar,
+textarea::-webkit-scrollbar,
+div::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+pre::-webkit-scrollbar-track,
+textarea::-webkit-scrollbar-track,
+div::-webkit-scrollbar-track {
+  background: rgba(63, 75, 37, 0.06);
+}
+pre::-webkit-scrollbar-thumb,
+textarea::-webkit-scrollbar-thumb,
+div::-webkit-scrollbar-thumb {
+  background: var(--color-sage);
+  border-radius: 4px;
+}
+pre::-webkit-scrollbar-thumb:hover,
+textarea::-webkit-scrollbar-thumb:hover,
+div::-webkit-scrollbar-thumb:hover {
+  background: var(--color-olive);
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

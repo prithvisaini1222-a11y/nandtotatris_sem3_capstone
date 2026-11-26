@@ -1,0 +1,113 @@
+// Nand to Tetris - Project 5
+// File name: capstone/HDL/CPU.hdl
+// Course: ETCCNT301 - Nand to Tetris - I
+// Student Roll Number: 2501730041 (K = 41)
+
+/**
+ * The Hack Central Processing Unit (CPU).
+ * Consists of an ALU, two registers (A and D), and a Program Counter (PC).
+ * Executes instructions according to the Hack machine language specification:
+ * - A-instruction: 0vvv vvvv vvvv vvvv (loads 15-bit constant into A register)
+ * - C-instruction: 111a cccc ccdd djjj (computes ALU operation, stores in dest, jumps)
+ */
+
+CHIP CPU {
+
+    IN  inM[16],         // M value input  (M = contents of RAM[A])
+        instruction[16], // Instruction for execution
+        reset;           // Signals whether to re-start the current
+                         // program (reset==1) or continue executing
+                         // the current program (reset==0).
+
+    OUT outM[16],        // M value output
+        writeM,          // Write to M?
+        addressM[15],    // Address in data memory (of M)
+        pc[15];          // Address of next instruction
+
+    PARTS:
+    // =========================================================================
+    // 1. INSTRUCTION DECODING
+    // =========================================================================
+    // instruction[15]: 0 -> A-instruction, 1 -> C-instruction
+    Not(in=instruction[15], out=isAInstruction);
+    Not(in=isAInstruction, out=isCInstruction);
+
+    // =========================================================================
+    // 2. A-REGISTER & A-INPUT MULTIPLEXER
+    // =========================================================================
+    // If A-instruction, load instruction constant into A.
+    // If C-instruction and dest bit d1 (instruction[5]) is set, load ALU output.
+    Mux16(a=instruction, b=aluOut, sel=instruction[15], out=inA);
+
+    // Load A register if it's an A-instruction OR (C-instruction AND d1==1)
+    Or(a=isAInstruction, b=instruction[5], out=loadA);
+    ARegister(in=inA, load=loadA, out=outA, out[0..14]=addressM);
+
+    // =========================================================================
+    // 3. ALU INPUT SELECTION (A vs M)
+    // =========================================================================
+    // If C-instruction and 'a' bit (instruction[12]) is 1, ALU y-input is inM; else outA.
+    Mux16(a=outA, b=inM, sel=instruction[12], out=outAM);
+
+    // =========================================================================
+    // 4. D-REGISTER
+    // =========================================================================
+    // D register is loaded only on C-instruction when dest bit d2 (instruction[4]) is set.
+    And(a=isCInstruction, b=instruction[4], out=loadD);
+    DRegister(in=aluOut, load=loadD, out=outD);
+
+    // =========================================================================
+    // 5. ALU OPERATION
+    // =========================================================================
+    // ALU inputs: x = D-register, y = A-register or Memory input
+    // Control bits: instruction[11..6] = zx, nx, zy, ny, f, no
+    ALU(x=outD, y=outAM,
+        zx=instruction[11],
+        nx=instruction[10],
+        zy=instruction[9],
+        ny=instruction[8],
+        f=instruction[7],
+        no=instruction[6],
+        out=aluOut,
+        out=outM,
+        zr=zrFlag,
+        ng=ngFlag);
+
+    // =========================================================================
+    // 6. MEMORY WRITE CONTROL (writeM)
+    // =========================================================================
+    // Write to memory M only on C-instruction when dest bit d3 (instruction[3]) is set.
+    And(a=isCInstruction, b=instruction[3], out=writeM);
+
+    // =========================================================================
+    // 7. JUMP LOGIC EVALUATION
+    // =========================================================================
+    // instruction[2] = j1 (out < 0)
+    // instruction[1] = j2 (out == 0)
+    // instruction[0] = j3 (out > 0)
+    
+    // Evaluate output signs from zr and ng flags
+    Not(in=zrFlag, out=notZr);
+    Not(in=ngFlag, out=notNg);
+    And(a=notZr, b=notNg, out=posFlag); // out > 0 if not zero and not negative
+
+    // Check individual conditions
+    And(a=instruction[2], b=ngFlag, out=passJLT);  // j1: negative
+    And(a=instruction[1], b=zrFlag, out=passJEQ);  // j2: zero
+    And(a=instruction[0], b=posFlag, out=passJGT); // j3: positive
+
+    // Combine conditions
+    Or(a=passJLT, b=passJEQ, out=passLE);
+    Or(a=passLE, b=passJGT, out=jumpConditionMet);
+
+    // Only jump if it's a C-instruction
+    And(a=isCInstruction, b=jumpConditionMet, out=loadPC);
+
+    // Program counter increments if load is 0
+    Not(in=loadPC, out=incPC);
+
+    // =========================================================================
+    // 8. PROGRAM COUNTER (PC)
+    // =========================================================================
+    PC(in=outA, load=loadPC, inc=incPC, reset=reset, out[0..14]=pc);
+}

@@ -1,0 +1,45 @@
+// Nand to Tetris - Project 5
+// File name: capstone/HDL/Computer.hdl
+// Course: ETCCNT301 - Nand to Tetris - I
+// Student Roll Number: 2501730041 (K = 41)
+
+/**
+ * The Hack Computer platform, consisting of CPU, ROM32K, and Memory chips.
+ * When reset is 0, the program stored in ROM executes sequentially or with jumps.
+ * When reset is 1, the program restarts execution from ROM address 0.
+ * Memory encompasses RAM16K, Screen memory-map (8K), and Keyboard register.
+ */
+
+CHIP Computer {
+
+    IN reset;
+
+    PARTS:
+    // =========================================================================
+    // 1. INSTRUCTION ROM (ROM32K)
+    // =========================================================================
+    // Stores the program code. Addressed by the CPU's program counter (pc).
+    ROM32K(address=pcOut, out=instructionCode);
+
+    // =========================================================================
+    // 2. CENTRAL PROCESSING UNIT (CPU)
+    // =========================================================================
+    // Executes fetched instructions, accesses memory, computes results,
+    // and updates the program counter.
+    CPU(inM=memoryOut,
+        instruction=instructionCode,
+        reset=reset,
+        outM=cpuOutM,
+        writeM=cpuWriteM,
+        addressM=cpuAddressM,
+        pc=pcOut);
+
+    // =========================================================================
+    // 3. MAIN MEMORY & MEMORY-MAPPED I/O
+    // =========================================================================
+    // Combines Data RAM (16K), Screen memory (8K), and Keyboard register.
+    Memory(in=cpuOutM,
+           load=cpuWriteM,
+           address=cpuAddressM,
+           out=memoryOut);
+}

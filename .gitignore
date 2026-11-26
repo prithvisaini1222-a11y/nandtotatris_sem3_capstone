@@ -1,0 +1,13 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Temporary and log files
+*.tmp
+*.log
+scratch/
+
+# OS specific files
+.DS_Store
+Thumbs.db
